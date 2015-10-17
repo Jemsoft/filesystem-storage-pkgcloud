@@ -116,7 +116,6 @@ FileSystemProvider.prototype.createContainer = function(options, cb) {
   }
 
   var dir = path.join(this.root, name);
-  console.log(dir);
   validateName(name, cb) && fs.mkdir(dir, options, function(err) {
     if (err) {
       return cb && cb(err);
