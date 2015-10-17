@@ -13,5 +13,9 @@
     "provider"
   ],
   "author": "Jemsoft Pty Ltd.",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "async": "^1.4.2",
+    "pkgcloud": "^1.1.0"
+  }
 }
