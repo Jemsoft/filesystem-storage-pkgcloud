@@ -6,6 +6,10 @@
   "scripts": {
     "test": "grunt test"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Jemsoft/filesystem-storage-pkgcloud"
+  },
   "keywords": [
     "pkgcloud",
     "filesystem",
