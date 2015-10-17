@@ -1,0 +1,17 @@
+{
+  "name": "filesystem-storage-pkgcloud",
+  "version": "0.0.1",
+  "description": "filesystem storage provider for pkgcloud",
+  "main": "index.js",
+  "scripts": {
+    "test": "grunt test"
+  },
+  "keywords": [
+    "pkgcloud",
+    "filesystem",
+    "cloud",
+    "provider"
+  ],
+  "author": "Jemsoft Pty Ltd.",
+  "license": "MIT"
+}
