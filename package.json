@@ -21,5 +21,8 @@
   "dependencies": {
     "async": "^1.4.2",
     "pkgcloud": "^1.1.0"
+  },
+  "devDependencies": {
+    "eslint-config-jemsoft": "^1.1.3"
   }
 }
