@@ -1,6 +1,6 @@
-## Filesystem provider
+## Filesystem provider [![Build Status](https://travis-ci.org/Jemsoft/filesystem-storage-pkgcloud.svg?branch=master)](https://travis-ci.org/Jemsoft/filesystem-storage-pkgcloud) [![NPM download count](https://img.shields.io/npm/v/filesystem-storage-pkgcloud.svg)](https://www.npmjs.com/package/filesystem-storage-pkgcloud)
 
-Filesystem storage provider for [pkgcloud](https://www.npmjs.com/package/pkgcloud) based on [loopback-storage-service](https://www.npmjs.com/package/loopback-storage-service)
+Filesystem storage provider for [pkgcloud](https://www.npmjs.com/package/pkgcloud) based on [loopback-storage-service](https://www.npmjs.com/package/loopback-storage-service) 
 
 You can either use the client on its own:
 
