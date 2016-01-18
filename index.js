@@ -174,14 +174,16 @@ FileSystemProvider.prototype.getContainer = function(containerName, cb) {
 
 // File related functions
 FileSystemProvider.prototype.upload = function(options) {
+  var self = this;
+
   if (typeof arguments[arguments.length - 1] === 'function') {
     throw new Error('FileSystemProvider: storage.upload no longer supports calling with a callback');
   }
 
   var container = options.container;
-  if (!validateName(container, cb)) return;
+  if (!validateName(container)) return;
   var file = options.remote;
-  if (!validateName(file, cb)) return;
+  if (!validateName(file)) return;
 
   var filePath = path.join(this.root, container, file);
 
@@ -192,8 +194,8 @@ FileSystemProvider.prototype.upload = function(options) {
   };
 
   var stream = fs.createWriteStream(filePath, fileOpts);
-  stream.on('finish', function() {
-    stream.emit('success');
+  stream.on('finish', function(details) {
+    stream.emit('success', new File(self, details));
   });
 
   return stream;
@@ -205,9 +207,9 @@ FileSystemProvider.prototype.download = function(options) {
   }
 
   var container = options.container;
-  if (!validateName(container, cb)) return;
+  if (!validateName(container)) return;
   var file = options.remote;
-  if (!validateName(file, cb)) return;
+  if (!validateName(file)) return;
 
   var filePath = path.join(this.root, container, file);
 
@@ -274,7 +276,7 @@ FileSystemProvider.prototype.getFile = function(container, file, cb) {
 
 FileSystemProvider.prototype.getUrl = function(options) {
   options = options || {};
-  var filePath = path.join(this.root, options.container, options.path);
+  var filePath = path.join(this.root, options.container, options.remote);
   return filePath;
 };
 

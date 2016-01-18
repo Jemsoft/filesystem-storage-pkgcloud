@@ -4,7 +4,8 @@
   "description": "filesystem storage provider for pkgcloud (based on loopback-storage-service)",
   "main": "index.js",
   "scripts": {
-    "test": "grunt test"
+    "test": "node test/test.js | ./node_modules/.bin/tap-spec",
+    "cover": "./node_modules/.bin/istanbul cover test/test.js | ./node_modules/.bin/tap-spec"
   },
   "repository": {
     "type": "git",
@@ -23,6 +24,10 @@
     "pkgcloud": "^1.1.0"
   },
   "devDependencies": {
-    "eslint-config-jemsoft": "^1.1.3"
+    "eslint": "^1.10.1",
+    "eslint-config-jemsoft": "^1.1.3",
+    "istanbul": "^0.4.2",
+    "tap-spec": "^4.1.1",
+    "tape": "^4.4.0"
   }
 }
