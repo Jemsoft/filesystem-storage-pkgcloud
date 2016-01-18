@@ -1,6 +1,6 @@
 {
   "name": "filesystem-storage-pkgcloud",
-  "version": "0.0.2",
+  "version": "1.0.0",
   "description": "filesystem storage provider for pkgcloud (based on loopback-storage-service)",
   "main": "index.js",
   "scripts": {
