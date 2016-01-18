@@ -4,14 +4,14 @@ Filesystem storage provider for [pkgcloud](https://www.npmjs.com/package/pkgclou
 
 You can either use the client on its own:
 
-```
+```javascript
 const filesystem = require('filesystem-storage-pkgcloud');
 const client = filesystem.createClient({ root: '_PATH_TO_LOCAL_STORAGE_DIRECTORY_' });
 ```
 
 or add it to pkgcloud providers:
 
-```
+```javascript
 const pkgcloud = require('pkgcloud');
 pkgcloud.providers.filesystem = {};
 pkgcloud.providers.filesystem.storage = require('filesystem-storage-pkgcloud');
