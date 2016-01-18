@@ -163,7 +163,7 @@ FileSystemProvider.prototype.getContainer = function(containerName, cb) {
   fs.stat(dir, function(err, stat) {
     var container = null;
     if (!err) {
-      var props = {name: containerName};
+      var props = { name: containerName };
       populateMetadata(stat, props);
       container = new Container(_this, props);
     }
@@ -173,34 +173,37 @@ FileSystemProvider.prototype.getContainer = function(containerName, cb) {
 };
 
 // File related functions
-FileSystemProvider.prototype.upload = function(options, cb) {
+FileSystemProvider.prototype.upload = function(options) {
+  if (typeof arguments[arguments.length - 1] === 'function') {
+    throw new Error('FileSystemProvider: storage.upload no longer supports calling with a callback');
+  }
+
   var container = options.container;
   if (!validateName(container, cb)) return;
   var file = options.remote;
   if (!validateName(file, cb)) return;
+
   var filePath = path.join(this.root, container, file);
 
-  var fileOpts = {flags: options.flags || 'w+',
+  var fileOpts = {
+    flags: options.flags || 'w+',
     encoding: options.encoding || null,
     mode: options.mode || 0666,
   };
 
-  try {
-    //simulate the success event in filesystem provider
-    //fixes: https://github.com/strongloop/loopback-component-storage/issues/58
-    // & #23 & #67
-    var stream = fs.createWriteStream(filePath, fileOpts);
-    stream.on('finish', function() {
-      stream.emit('success');
-    });
+  var stream = fs.createWriteStream(filePath, fileOpts);
+  stream.on('finish', function() {
+    stream.emit('success');
+  });
 
-    return stream;
-  } catch (e) {
-    cb && cb(e);
-  }
+  return stream;
 };
 
-FileSystemProvider.prototype.download = function(options, cb) {
+FileSystemProvider.prototype.download = function(options) {
+  if (typeof arguments[arguments.length - 1] === 'function') {
+    throw new Error('FileSystemProvider: storage.download no longer supports calling with a callback');
+  }
+
   var container = options.container;
   if (!validateName(container, cb)) return;
   var file = options.remote;
@@ -213,11 +216,7 @@ FileSystemProvider.prototype.download = function(options, cb) {
     autoClose: true,
   };
 
-  try {
-    return fs.createReadStream(filePath, fileOpts);
-  } catch (e) {
-    cb && cb(e);
-  }
+  return fs.createReadStream(filePath, fileOpts);
 };
 
 FileSystemProvider.prototype.getFiles = function(container, options, cb) {
