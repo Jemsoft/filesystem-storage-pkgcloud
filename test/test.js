@@ -82,10 +82,56 @@ test('Upload file', function(t) {
   });
 });
 
+
+test('Upload file to subdirectory', function(t) {
+  var path = basePath + '/' + containerName + '/subfolder/' + fileName;
+
+  var uploadStream = client.upload({
+    container: containerName,
+    remote: 'subfolder/' + fileName,
+  });
+
+  var file = new stream.Readable();
+  file.push(content);
+  file.push(null);
+  file.pipe(uploadStream);
+
+  uploadStream.on('error', function(err) {
+    t.fail('error!');
+  });
+
+  uploadStream.on('success', function(file) {
+    t.ok(file, 'file must exist');
+    fs.readFile(path, function(err, data) {
+      if (err) t.fail('error!');
+      t.equal(data.toString(), content, 'content must be the same');
+      t.end();
+    });
+  });
+});
+
 test('Download file', function(t) {
   var downloadStream = client.download({
     container: containerName,
     remote: fileName,
+  });
+
+  downloadStream.on('readable', function() {
+    var data = downloadStream.read();
+    if (data) {
+      t.equal(data.toString(), content, 'content must be the same');
+    }
+  });
+
+  downloadStream.on('end', function() {
+    t.end();
+  });
+});
+
+test('Download File from sub directory', function(t) {
+  var downloadStream = client.download({
+    container: containerName,
+    remote: 'subfolder/' + fileName,
   });
 
   downloadStream.on('readable', function() {
@@ -108,12 +154,20 @@ test('Get file', function(t) {
   });
 });
 
+test('Get file from sub directory', function(t) {
+  client.getFile(containerName, 'subfolder/' + fileName, function(err, file) {
+    if (err) t.fail('error!');
+    t.ok(file, 'file must be found');
+    t.end();
+  });
+});
+
 test('Get files', function(t) {
   client.getFiles(containerName, function(err, files) {
     if (err) t.fail('error!');
     t.ok(files, 'files must exist');
     t.ok(Array.isArray(files), 'files must be an Array');
-    t.equal(files.length, 1, 'file must exist in files');
+    t.equal(files.length, 2, 'file must exist in files');
     t.end();
   });
 });
@@ -135,6 +189,28 @@ test('Remove file', function(t) {
       t.notOk(stat && !err, 'file must be deleted');
       t.end();
     });
+  });
+});
+
+test('Remove file in sub directory', function(t) {
+  client.removeFile(containerName, 'subfolder/' + fileName, function(err, file) {
+    if (err) t.fail('error!');
+    var stat = fs.stat(path, function(err, stat) {
+      t.notOk(stat && !err, 'file must be deleted');
+      t.end();
+    });
+  });
+});
+
+test('Fail to destroy container with ../', function(t) {
+  client.destroyContainer('container/../', function(err, file) {
+    if (err) {
+      t.pass('failed with ../');
+    } else {
+      t.fail('accepted ../');
+    }
+
+    t.end();
   });
 });
 
