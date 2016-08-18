@@ -160,7 +160,7 @@ FileSystemProvider.prototype.createContainer = function(options, cb) {
 FileSystemProvider.prototype.destroyContainer = function(containerName, cb) {
   if (!validateName(containerName, cb)) return;
   if (containerName.indexOf('../') !== -1) {
-    cb(new Error('Invalid Name: Unsafe use of ../'));
+    cb(new Error('FileSystemProvider: Invalid Name: Unsafe use of ../'));
     return;
   } 
   var dir = path.join(this.root, containerName);
