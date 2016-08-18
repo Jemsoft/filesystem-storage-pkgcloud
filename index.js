@@ -22,7 +22,6 @@ function FileSystemProvider(options) {
   this.root = options.root;
   var exists = fs.existsSync(this.root);
   if (!exists) {
-    console.log(this.root);
     throw new Error('FileSystemProvider: Path does not exist: ' + this.root);
   }
 
@@ -45,7 +44,7 @@ function validateName(name, cb) {
   }
 
   var match = namePattern.exec(name);
-  if (match && match.index === 0 && match[0].length === name.length) {
+  if (name.length > 0) {
     return true;
   } else {
     cb && process.nextTick(cb.bind(null,
@@ -56,6 +55,30 @@ function validateName(name, cb) {
 
     return false;
   }
+}
+
+
+/*
+ * Validate that the path exists and create missing folders
+ */
+function validatePath(targetPath, cb) {
+  // Remove file name from the end of the path
+  var lastIndex = targetPath.lastIndexOf('/');
+
+  if (lastIndex != -1) {
+    var folderPath = targetPath.substring(0, lastIndex);
+    try {
+      var stat = fs.statSync(folderPath);
+      if (!stat.isDirectory()) {
+        fs.mkdirSync(folderPath);
+      }
+    } catch(e) {
+      fs.mkdirSync(folderPath); 
+    }
+    var stat = fs.statSync(folderPath);
+  }
+
+  return true;
 }
 
 /*!
@@ -136,22 +159,63 @@ FileSystemProvider.prototype.createContainer = function(options, cb) {
 
 FileSystemProvider.prototype.destroyContainer = function(containerName, cb) {
   if (!validateName(containerName, cb)) return;
-
+  if (containerName.indexOf('../') !== -1) {
+    cb(new Error('Invalid Name: Unsafe use of ../'));
+    return;
+  } 
   var dir = path.join(this.root, containerName);
-  fs.readdir(dir, function(err, files) {
-    files = files || [];
-
-    var tasks = [];
-    files.forEach(function(f) {
-      tasks.push(fs.unlink.bind(fs, path.join(dir, f)));
-    });
-
-    async.parallel(tasks, function(err) {
+  
+  if (containerName) {
+    rmdirAsync(dir, function(err) {
       if (err) {
-        cb && cb(err);
+        cb(err);
       } else {
-        fs.rmdir(dir, cb);
+        cb();
       }
+    });
+  }
+};
+
+// Asynchronous remove directory with files in it (be careful calling this);
+function rmdirAsync(path, callback) {
+  fs.readdir(path, function(err, files) {
+    if(err) {
+      //Pass the error on to callback
+      callback(err, []);
+      return;
+    }
+
+    var wait = files.length,
+      count = 0,
+      folderDone = function(err) {
+      count++;
+      // If we cleaned out all the files, continue
+      if(count >= wait || err) {
+        fs.rmdir(path, callback);
+      }
+    };
+    
+    // Empty directory to bail early
+    if(!wait) {
+      folderDone();
+      return;
+    }
+        
+    // Remove one or more trailing slash to keep from doubling up
+    path = path.replace(/\/+$/,"");
+    files.forEach(function(file) {
+      var currentPath = path + "/" + file;
+      fs.lstat(currentPath, function(err, stats) {
+        if(err) {
+          callback(err, []);
+          return;
+        }
+        if( stats.isDirectory() ) {
+          rmdirAsync(currentPath, folderDone);
+        } else {
+          fs.unlink(currentPath, folderDone);
+        }
+      });
     });
   });
 };
@@ -184,9 +248,11 @@ FileSystemProvider.prototype.upload = function(options) {
   if (!validateName(container)) return;
   var file = options.remote;
   if (!validateName(file)) return;
-
+  
+  
   var filePath = path.join(this.root, container, file);
-
+  
+  validatePath(filePath);
   var fileOpts = {
     flags: options.flags || 'w+',
     encoding: options.encoding || null,
@@ -197,7 +263,6 @@ FileSystemProvider.prototype.upload = function(options) {
   stream.on('finish', function(details) {
     stream.emit('success', new File(self, details));
   });
-
   return stream;
 };
 
@@ -230,32 +295,47 @@ FileSystemProvider.prototype.getFiles = function(container, options, cb) {
   var _this = this;
   if (!validateName(container, cb)) return;
   var dir = path.join(this.root, container);
-  fs.readdir(dir, function(err, entries) {
-    entries = entries || [];
-    var files = [];
-    var tasks = [];
-    entries.forEach(function(f) {
-      tasks.push(fs.stat.bind(fs, path.join(dir, f)));
-    });
-
-    async.parallel(tasks, function(err, stats) {
-      if (err) {
-        cb && cb(err);
-      } else {
-        stats.forEach(function(stat, index) {
-          if (stat.isFile()) {
-            var props = {container: container, name: entries[index]};
-            populateMetadata(stat, props);
-            var file = new File(_this, props);
-            files.push(file);
-          }
-        });
-
-        cb && cb(err, files);
-      }
-    });
-  });
+  readdirAsync(dir, container, this, cb);
 };
+
+function readdirAsync(dir, container, _this, callback) {
+  var allFiles = [];
+  var subPath = container;
+  fs.readdir(dir, function(err, files) {
+    if(err) {
+      //Pass the error on to callback
+      callback(err, []);
+      return;
+    }
+
+    var count = 0;
+
+    (function process() {
+      var file = files[count++];
+      if (!file) {
+        callback(null, allFiles);
+        return;
+      }
+      var currentPath = path.join(dir, file);
+      fs.lstat(currentPath, function(err, stat) {
+        if (stat && stat.isDirectory()) {
+          readdirAsync(currentPath, container, _this, function(err, res) {
+            allFiles = allFiles.concat(res);
+            subPath = path.join(subPath, file);
+            process();
+          });
+        } else {
+          var fileName = currentPath.substring(currentPath.lastIndexOf('/') + 1, currentPath.length);
+          var props = {container: container, name: fileName, location: subPath };
+          populateMetadata(stat, props);
+          var outFile = new File(_this, props);
+          allFiles.push(outFile);
+          process();
+        }
+      })
+    })();
+  });
+}
 
 FileSystemProvider.prototype.getFile = function(container, file, cb) {
   var _this = this;
