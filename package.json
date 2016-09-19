@@ -21,6 +21,7 @@
   "license": "MIT",
   "dependencies": {
     "async": "^1.4.2",
+    "mkdirp": "^0.5.1",
     "pkgcloud": "^1.1.0"
   },
   "devDependencies": {
