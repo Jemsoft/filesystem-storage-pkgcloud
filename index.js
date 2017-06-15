@@ -7,7 +7,6 @@ var path = require('path');
 var async = require('async');
 var File = require('./file').File;
 var Container = require('./container').Container;
-var mkdirp = require('mkdirp');
 
 module.exports.storage = module.exports; // To make it consistent with pkgcloud
 
@@ -71,10 +70,10 @@ function validatePath(targetPath, cb) {
     try {
       var stat = fs.statSync(folderPath);
       if (!stat.isDirectory()) {
-        mkdirp.sync(folderPath);
+        fs.mkdirSync(folderPath);
       }
     } catch(e) {
-      mkdirp.sync(folderPath);
+      fs.mkdirSync(folderPath); 
     }
     var stat = fs.statSync(folderPath);
   }
