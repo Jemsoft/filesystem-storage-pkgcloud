@@ -249,15 +249,15 @@ FileSystemProvider.prototype.upload = function(options) {
   if (!validateName(container)) return;
   var file = options.remote;
   if (!validateName(file)) return;
-  
-  
+
+
   var filePath = path.join(this.root, container, file);
-  
+
   validatePath(filePath);
   var fileOpts = {
     flags: options.flags || 'w+',
     encoding: options.encoding || null,
-    mode: options.mode || 0666,
+    mode: options.mode || '0666',
   };
 
   var stream = fs.createWriteStream(filePath, fileOpts);
