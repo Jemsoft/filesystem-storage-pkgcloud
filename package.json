@@ -1,6 +1,6 @@
 {
   "name": "@firm24/filesystem-storage-pkgcloud",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "filesystem storage provider for pkgcloud (based on loopback-storage-service)",
   "main": "index.js",
   "scripts": {
